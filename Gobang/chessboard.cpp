@@ -10,8 +10,16 @@ Chessboard::Chessboard(QWidget *parent)
     , ui(new Ui::Chessboard)
 {
     ui->setupUi(this);
-    this->setWindowTitle("本地对战");                                  // 设置窗口标题
 
+
+    QIcon icon(":/img/icon.ico");
+    setWindowIcon(icon);   // 设置窗口图标
+    setMouseTracking(true);  // 没有这句话就需要按住鼠标移动，才能更新选框，如果把这句话放在鼠标检测函数里，就会要先按住点一下才能跟随移动，所以初始化时就进行设置
+
+     this->setFixedSize(BOARD_SIZE.height()+200, BOARD_SIZE.width());  // 设置棋盘大小
+    boardReceivePlayer << WHITE_PLAYER << BLACK_PLAYER;               // 棋盘默认双人对战
+
+    // 界面按钮的美化
     ui->back_btn->setStyleSheet("QPushButton {"
                                 "background-color: #8B4513;" // 棕色
                                 "border: 2px solid #8B4513;"
@@ -101,45 +109,29 @@ Chessboard::Chessboard(QWidget *parent)
     animation.setEndValue(QRect(100, 100, 220, 60)); // 结束位置和大小
     animation.setEasingCurve(QEasingCurve::InOutQuad); // 缓动曲线
 
-    // 加载图像并设置抗锯齿
-    // QPixmap pixmap(":img/white.png");
-    // pixmap.setDevicePixelRatio(2.0); // 增加分辨率，以提高显示质量
-    // pixmap = pixmap.scaledToWidth(400, Qt::SmoothTransformation); // 对图像进行缩放并设置平滑变换以进行抗锯齿处理
-    // ui->bai_piece->setPixmap(pixmap);
-    // ui->bai_piece->setStyleSheet("background-color: rgba(0, 0, 0, 0);"); // 设置背景颜色
-    // ui->bai_piece->setStyleSheet("QLabel { background-color: rgba(0, 0, 0, 0);}"); // 设置背景颜色透明度
-
-
-
-
-    QIcon icon(":/img/icon.ico");
-    setMouseTracking(true);
-    setWindowIcon(icon);                                              // 设置窗口图标
-    this->setFixedSize(BOARD_SIZE.height()+200, BOARD_SIZE.width());  // 设置棋盘大小
-    boardReceivePlayer << WHITE_PLAYER << BLACK_PLAYER;               // 棋盘默认双人对战
-
-    // 设置液晶数字显示器的范围和显示位数
+    // 设置白棋得分液晶数字显示器的范围和显示位数
     ui->bai_num->setSegmentStyle(QLCDNumber::Flat); // 设置显示风格
     //ui->bai_num->setFixedSize(200, 100); // 设置尺寸
     ui->bai_num->setDigitCount(4); // 设置显示位数
-    // 设置液晶数字显示器的范围和显示位数
+    // 设置黑棋得分液晶数字显示器的范围和显示位数
     ui->hei_num->setSegmentStyle(QLCDNumber::Flat); // 设置显示风格
     //ui->hei_num->setFixedSize(200, 100); // 设置尺寸
     ui->hei_num->setDigitCount(4); // 设置显示位数
-
+    // 设置样式
     ui->hei_num->setStyleSheet("QLCDNumber { background-color: #d2b48c; color: #8b4513; border: 2px solid #8b4513; }");
     ui->bai_num->setStyleSheet("QLCDNumber { background-color: #d2b48c; color: #8b4513; border: 2px solid #8b4513; }");
 
+    // 设置标签内字体的格式
     QFont font("SimSun", 16); // 选择宋体作为古风字体
     font.setWeight(QFont::Bold); // 设置字体加粗
     ui->bai_piece->setFont(font);
     ui->hei_piece->setFont(font);
 
-
-
-    connect(ui->back_btn, &QPushButton::clicked, this, &Chessboard::sendSignal);        // 返回菜单
-    connect(ui->re_btn, &QPushButton::clicked, this, &Chessboard::SendReStart);         // 重开游戏
-    connect(ui->hui_btn, &QPushButton::clicked, this, &Chessboard::SendUnDo);           // 悔棋
+    // 连接信号和槽函数
+    connect(ui->back_btn, &QPushButton::clicked, this, &Chessboard::sendReturnSignal);        // 返回菜单
+    connect(ui->re_btn, &QPushButton::clicked, this, &Chessboard::SendReStart);               // 重开游戏
+    connect(ui->hui_btn, &QPushButton::clicked, this, &Chessboard::SendUnDo);                 // 悔棋
+    // 黑白棋得分的更新
     connect(this, &Chessboard::WhiteScore, [&]() {
         ui->bai_num->display(white_score);
     });
@@ -147,10 +139,10 @@ Chessboard::Chessboard(QWidget *parent)
         ui->hei_num->display(black_score);
     });
 
-
-
+    // 新游戏的初始化
     StartNewGame();
 }
+// 再来一局
 void Chessboard::ReStartNewGame(){
     for (int i = 0; i < BOARD_COL; i++){
         for (int j = 0; j < BOARD_ROW; j++){
@@ -164,8 +156,9 @@ void Chessboard::ReStartNewGame(){
     update();
     emit(TurnToNextPlayer(nextPlayer));
 }
-void Chessboard::StartNewGame() // 开始新游戏
-{
+
+// 开始新游戏
+void Chessboard::StartNewGame(){
     for (int i = 0; i < BOARD_COL; i++){
         for (int j = 0; j < BOARD_ROW; j++){
             board[i][j] = NO_PIECE;
@@ -174,12 +167,11 @@ void Chessboard::StartNewGame() // 开始新游戏
     winPiecePos.clear();
     dropedPieces.clear();
     nextPlayer = BLACK_PLAYER;  // 默认黑棋先手
-
-    black_score = 0;            // 返回主界面清除得分
+    // 返回主界面清除得分
+    black_score = 0;
     emit BlackScore();
     white_score = 0;
     emit WhiteScore();
-
     isGameOver = false;
     update();
     emit(TurnToNextPlayer(nextPlayer));
@@ -198,7 +190,7 @@ void Chessboard::paintEvent(QPaintEvent *event){
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing,true); // 抗锯齿
 
-    QBrush  brush;
+    QBrush brush;
     brush.setColor(QColor("#EEC085"));
     brush.setStyle(Qt::SolidPattern);
     painter.setBrush(brush);
@@ -288,6 +280,23 @@ void Chessboard::paintEvent(QPaintEvent *event){
         painter.drawLine(drawPos + QPoint(0, 5), drawPos + QPoint(0, -5));
         painter.drawLine(drawPos + QPoint(5, 0), drawPos + QPoint(-5, 0));
     }
+    // // 绘制行号与列号
+    // painter.setPen(Qt::black); // 设置字体颜色
+    // QFont font;
+    // font.setPointSize(8); // 设置字体大小
+    // painter.setFont(font);
+
+    // // 绘制行号
+    // for (int i = 0; i < BOARD_COL; i++) {
+    //     QString num = QString::number(BOARD_COL - i); // 转换为字符串，并且从下到上递增
+    //     painter.drawText(START_POS.x() - 17.5, START_POS.y() + i * PIECE_SIZE.height() + 7.5, num); // 绘制行号，紧靠方格
+    // }
+
+    // // 绘制列号
+    // for (int j = 0; j < BOARD_ROW; j++) {
+    //     QString num = QString::number(j + 1); // 转换为字符串
+    //     painter.drawText(START_POS.x() + j * PIECE_SIZE.width() + 5, START_POS.y() + BOARD_ROW * PIECE_SIZE.height() + 20, num); // 绘制列号，紧靠方格
+    // }
 }
 
 void Chessboard::SetMousePos(const QPoint &pos) // 将鼠标在棋盘中的位置保存于 mousePos 中
@@ -320,8 +329,8 @@ void Chessboard::mouseMoveEvent(QMouseEvent *event) // 鼠标移动事件
     SetMousePos(QPoint(x - offsetX,y - offsetY) + START_POS - QPoint(PIECE_SIZE.width()/2, PIECE_SIZE.height()/2));
 }
 
-void Chessboard::sendSignal(){
-    emit Signal();
+void Chessboard::sendReturnSignal(){
+    emit ReturnToMenu();
 }
 
 void Chessboard::SetPiece(int x,int y)  // 落子
@@ -330,7 +339,7 @@ void Chessboard::SetPiece(int x,int y)  // 落子
     {
         dropedPieces.push(QPoint(x, y));
         board[x][y] = (nextPlayer == BLACK_PLAYER) ? BLACK_PIECE : WHITE_PIECE;
-        update();
+        repaint();      // 相较于update可实现立刻刷新效果
         CheckWinner();  // 胜负判断
         if (!isGameOver)
         {
@@ -342,7 +351,7 @@ void Chessboard::SwitchNextPlayer() // 切换选手
 {
     if(nextPlayer == BLACK_PLAYER){
         nextPlayer = WHITE_PLAYER;
-    }else{
+    }else if(nextPlayer == WHITE_PLAYER){
         nextPlayer = BLACK_PLAYER;
     }
 }
@@ -376,7 +385,13 @@ void Chessboard::mouseReleaseEvent(QMouseEvent *event) // 鼠标点击事件
             pieceX++;
         if(offsetY > PIECE_SIZE.height() / 2)
             pieceY++;
-        if(!isGameOver) SetPiece(pieceX,pieceY);  // 防止结束后还能下棋
+        if(!isGameOver && !aiModel && board[pieceX][pieceY] == NO_PIECE){
+            SetPiece(pieceX,pieceY);  // 防止结束后还能下棋
+        }
+        if(aiModel && nextPlayer == BLACK_PLAYER && !isGameOver && board[pieceX][pieceY] == NO_PIECE){  // 只有当黑棋(玩家)回合时才允许落子
+            SetPiece(pieceX,pieceY);
+            emit setpiece();  // 发出落子信号，向Ai更新棋盘信息
+        }
     }
 }
 bool Chessboard::IsFivePiece(int x, int y){
@@ -469,13 +484,72 @@ void Chessboard::SendReStart(){
     emit ReStart();
 }
 void Chessboard::SendUnDo(){
-    if(!isGameOver && !dropedPieces.empty()){
+    if(!isGameOver && !dropedPieces.empty() && !aiModel){
         QPoint point = dropedPieces.top();
         board[point.x()][point.y()] = 0;
         SwitchNextPlayer();
         dropedPieces.pop();
         repaint();
     }
+    if(!isGameOver && !dropedPieces.empty() && aiModel){  //当游戏没有结束且有落子的情况下才能悔棋
+        QPoint point = dropedPieces.top();
+        board[point.x()][point.y()] = 0;
+        dropedPieces.pop();
+        point = dropedPieces.top();
+        board[point.x()][point.y()] = 0;
+        dropedPieces.pop();
+        repaint();
+    }
+}
+void Chessboard::ShowChoice(){
+    // 创建对话框
+    QDialog dialog;
+    // 设置对话框固定大小为200x180
+    dialog.setFixedSize(200, 180);
+    dialog.setWindowTitle("选择先手或后手");
+    // 创建 QIcon 对象并设置窗口图标
+    QIcon icon(":img/icon.ico"); // 从资源文件加载图标
+    dialog.setWindowIcon(icon);
+    // 创建垂直布局管理器
+    QVBoxLayout layout(&dialog);
+
+    // 创建单选按钮
+    QRadioButton *firstPlayerRadioButton = new QRadioButton("先手下棋", &dialog);
+    QRadioButton *secondPlayerRadioButton = new QRadioButton("后手下棋", &dialog);
+
+    // 添加单选按钮到布局中
+    layout.addWidget(firstPlayerRadioButton);
+    layout.addWidget(secondPlayerRadioButton);
+
+    // 创建确定按钮
+    QPushButton *okButton = new QPushButton("确定", &dialog);
+    layout.addWidget(okButton);
+
+    // 连接确定按钮的点击信号到槽函数
+    QObject::connect(okButton, &QPushButton::clicked, [&]() {
+        if (!firstPlayerRadioButton->isChecked() && !secondPlayerRadioButton->isChecked()) {
+            // 如果没有选中任何单选按钮，则弹出提示框
+            QMessageBox::warning(&dialog, "提示", "请选择先手或后手！");
+        }else if(firstPlayerRadioButton->isChecked()){
+            isHumFir = true;
+            dialog.close();
+        }else if(secondPlayerRadioButton->isChecked()){
+            isHumFir = false;
+            dialog.close();
+        }
+    });
+
+    dialog.setStyleSheet("QDialog { background-color: #D2B48C; border: 2px solid #A0522D; }"
+                         "QRadioButton { font-size: 16px; font-family: SimSun; font-weight: bold; color: #8B4513; }"
+                         "QRadioButton::indicator { width: 20px; height: 20px; border-radius: 10px; background-color: transparent; }"
+                         "QRadioButton::indicator:checked { background-color: #8B4513; }"
+                         "QPushButton { background-color: #8B4513; color: #fff; border: none; padding: 8px 16px; font-size: 16px; font-family: SimSun; font-weight: bold;border-radius: 20px; }"
+                         "QPushButton:hover { background-color: #A0522D; }");
+
+
+    // 显示对话框
+    dialog.setLayout(&layout);
+    dialog.exec();
 }
 Chessboard::~Chessboard()
 {

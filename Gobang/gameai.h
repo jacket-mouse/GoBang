@@ -5,7 +5,6 @@
 #include "command.h"
 #include <QPoint>
 #include <QDebug>
-#include <iostream>
 #include <random>
 #include <cstdint>
 struct Pos {
@@ -28,12 +27,6 @@ public:
     void chessStatus_init();                                              // 评估函数初始化
     Points localSearch(int board[BOARD_ROW][BOARD_COL]);                  // 局部搜索
     void reverseBoard(int board[BOARD_ROW][BOARD_COL], int rboard[BOARD_ROW][BOARD_COL]);       // 反转棋盘
-    // QVector<QPoint> GetAllDropPiecePos();       // 返回棋盘上所有NO_PIECE位置
-    // int GetPieceScore(int x,int y,int player);  // 返回该位置相对于player的分数
-    // int GetPosValue(int x,int y);               // 返回该位置的分数，越靠近中间分数越高
-    // int GetChessType(int x,int y,int direction,int pieceColor);     // 返回该位置direction方向上的棋形
-    // int GetLinePieceNum(int x,int y,int direction,int pieceColor,int &pieceEnd);    //获取该位置该方向上pieceColor颜色的连续棋子数，pieceEnd为结束位置棋子
-    // bool IsBeyond(int x,int y);
     int MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int deep, int alpha, int beta);  // 极大极小值搜索
 
 public:

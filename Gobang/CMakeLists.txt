@@ -31,9 +31,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         chessboard.h chessboard.cpp chessboard.ui
         command.h
         game_control.h game_control.cpp game_control.ui
-        chessboard_ai.h chessboard_ai.cpp chessboard_ai.ui
         gameai.h gameai.cpp
-        control.h control.cpp control.ui
 
     )
 # Define target properties for Android with Qt 6 as:
