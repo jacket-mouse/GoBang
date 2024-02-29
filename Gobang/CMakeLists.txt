@@ -32,6 +32,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         command.h
         game_control.h game_control.cpp game_control.ui
         gameai.h gameai.cpp
+        zobrist.h zobrist.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

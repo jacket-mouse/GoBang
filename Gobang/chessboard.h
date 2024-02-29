@@ -25,7 +25,7 @@ public:
 
     explicit Chessboard(QWidget *parent = nullptr);
     ~Chessboard();
-    void sendReturnSignal();                          // 发送返回菜单界面信号
+    void sendReturnSignal();                    // 发送返回菜单界面信号
     void paintEvent(QPaintEvent *event);        // 重写绘图事件
     void SetMousePos(const QPoint &pos);        // 更新当前鼠标位置
     void mouseMoveEvent(QMouseEvent *event);    // 鼠标移动事件
@@ -49,6 +49,7 @@ public:
     int white_score;                            // 白棋得分
     bool aiModel;                               // ai模式标志
     bool isHumFir;                              // ai模式下，人是否先手标志
+    bool isFir;                                 // ai模式下，是否是ai的第一个棋子标记
     Ui::Chessboard *ui;
     //Ui::Chessboard *ui;                         // game_control通过ui获取按钮等(该方案有问题，也可以将按下按钮绑定一个发射信号，就像widget中的按钮一样，而把ui放入private
 
@@ -63,7 +64,7 @@ signals:
     void setpiece();                            // 发出落子信号，提醒Ai下棋
 public slots:
     void StartNewGame();                        // 清除棋盘信息，开始新游戏
-    void SetPiece(int x,int y);                 // 落子
+    void SetPiece(int x, int y);                // 落子
     void SendReStart();                         // 向控制类发送重开游戏信号
     void SendUnDo();                            // 悔棋
 

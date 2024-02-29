@@ -2,20 +2,6 @@
 
 GameAi::GameAi() {
     chessStatus_init();
-    Zobrist zobrist;
-    for(int i = 0; i < BOARD_ROW; i++){
-        for(int j = 0; j < BOARD_COL; j++){
-            uint64_t randomNum = zobrist.getRandom();
-            zobrist_black[i][j] = randomNum;
-            // qDebug()<<zobrist_black[i][j];
-        }
-    }
-    for(int i = 0; i < BOARD_ROW; i++){
-        for(int j = 0; j < BOARD_COL; j++){
-            uint64_t randomNum = zobrist.getRandom();
-            zobrist_white[i][j] = randomNum;
-        }
-    }
 }
 GameAi::~GameAi() {}
 void GameAi::reverseBoard(int board[BOARD_ROW][BOARD_COL], int rboard[BOARD_ROW][BOARD_COL]){
@@ -62,7 +48,7 @@ Points GameAi::localSearch(int board[BOARD_ROW][BOARD_COL]) {
             weight[i][j] = INT_MIN;  // 最小int整数
             if (localBoard[i][j]) {
                 board[i][j] = WHITE_PIECE;
-                weight[i][j] = evaluate(board);
+                weight[i][j] = evaluate(board).score;
                 board[i][j] = 0;
             }
         }
@@ -87,20 +73,27 @@ Points GameAi::localSearch(int board[BOARD_ROW][BOARD_COL]) {
 }
 
 int GameAi::MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int depth, int alpha, int beta){  // 极大极小值搜索
-    //    if (debugMode && depth == DEPTH) cout << depth << endl;
-    //    迭代深度为0，直接返回分析结果
+
+    unsigned long long hashkey;
+    // EVALUATION EVAL = evaluate(board);
+
+    //如果有精确结果就返回精确结果
+    // int score = EVAL.score;
+    // hashkey=zobb.calculateHash(board);
+    // if(zobb.probe(hashkey, depth, score)){
+    //     return score;
+    // }else{
+    //     zobb.store(hashkey, depth, score);
+    // }
+    // 迭代深度为0，直接返回分析结果
     if (depth == 0) {
-        Points p = this->localSearch(board);
+        Points p;
+        p = this->localSearch(board);
         return p.score[0];
-    }
-    else if (depth % 2 == 0) { //max层
+    }else if (depth % 2 == 0) { //max层
         int sameBoard[BOARD_ROW][BOARD_COL] = {{0}};
         // 将board复制给sameboard
-        for(int i = 0; i < BOARD_ROW; i++){
-            for(int j = 0; j < BOARD_COL; j++){
-                sameBoard[i][j] = board[i][j];
-            }
-        }
+        copyBoard(board, sameBoard);
         Points p = this->localSearch(board);
         for (int i = 0; i < AN; i ++) {
             sameBoard[p.pos[i].x][p.pos[i].y] = WHITE_PIECE; //模拟落子
@@ -135,11 +128,9 @@ int GameAi::MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int depth, int alpha, 
         //  反转棋盘
         reverseBoard(board, rboard);
         int sameBoard[BOARD_ROW][BOARD_COL] = {{0}};
-        for(int i = 0; i < BOARD_ROW; i++){
-            for(int j = 0; j < BOARD_COL; j++){
-                sameBoard[i][j] = board[i][j];
-            }
-        }
+        // 将board复制给sameboard
+        copyBoard(board, sameBoard);
+
         Points p = this->localSearch(rboard); //寻找对于敌方的最佳落子点
         for (int i = 0; i < AN; i ++) {
             sameBoard[p.pos[i].x][p.pos[i].y] = BLACK_PIECE;
@@ -348,7 +339,7 @@ void GameAi::chessStatus_init() {
 
 }
 
-int GameAi::evaluate(int board[BOARD_ROW][BOARD_COL]){  // 评估函数
+EVALUATION GameAi::evaluate(int board[BOARD_ROW][BOARD_COL]){  // 评估函数
     //  权值
     int weight[17]={0, 1100000, -10000000, -1000000, 50000, -1000000, 400, -8000, 400, -50, 20, -50, 20, -3, 1, -3, 1};
     //  四个方向的棋形记录，每个位置对应一个权重值，如果包含一个该权重棋形则+1
@@ -396,16 +387,45 @@ int GameAi::evaluate(int board[BOARD_ROW][BOARD_COL]){  // 评估函数
             shapeRecord[3][type] ++;
         }
     }
+    EVALUATION eval;
+    memset(eval.STAT,0,sizeof(eval.STAT));
+
+
     //  分数统计
     int score = 0;
     int count = 0;
-    for (int i = 0; i < 17; i ++) {
+    for (int i = 0; i < 17; i++) {
+
         score += weight[i] * shapeRecord[0][i] + weight[i] * shapeRecord[1][i] + weight[i] * shapeRecord[2][i] +
                  weight[i] * shapeRecord[3][i];
         count = shapeRecord[0][i] + shapeRecord[1][i] + shapeRecord[2][i] + shapeRecord[3][i];
+        //统计不同类型，主要是自己的杀棋和正负判断
+        if(i==WIN) eval.STAT[WIN]=count;
+        else if(i==LOSE) eval.STAT[LOSE]=count;
+        else if(i==FLEX4) eval.STAT[FLEX4]=count;
+        else if(i==BLOCK4) eval.STAT[BLOCK4]=count;
+        else if(i==FLEX3) eval.STAT[FLEX3]=count;
+
     }
+    eval.result=R_DRAW;
+    //黑赢
+    if(eval.STAT[WIN]>0)eval.result=R_BLACK;
+    //白赢
+    else if(eval.STAT[LOSE]>0)eval.result=R_WHITE;
+    eval.score=score;
     //qDebug()<<"score:"<<score;
-    return score;
+    return eval;
+}
+
+//复制棋盘
+void GameAi::copyBoard(int board[BOARD_ROW][BOARD_COL], int sameboard[BOARD_ROW][BOARD_COL]){
+    for(int i=0;i<BOARD_ROW;++i){
+        for(int j=0;j<BOARD_COL;++j){
+            if(board[i][j] == BLACK_PIECE) sameboard[i][j] = BLACK_PIECE;
+            else if(board[i][j] == WHITE_PIECE) sameboard[i][j] = WHITE_PIECE;
+            else sameboard[i][j] = NO_PIECE;
+        }
+    }
 }
 
 

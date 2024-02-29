@@ -10,7 +10,7 @@ Chessboard::Chessboard(QWidget *parent)
     , ui(new Ui::Chessboard)
 {
     ui->setupUi(this);
-
+    isFir = true;
 
     QIcon icon(":/img/icon.ico");
     setWindowIcon(icon);   // 设置窗口图标
@@ -154,7 +154,13 @@ void Chessboard::ReStartNewGame(){
     nextPlayer = BLACK_PLAYER;  // 默认黑棋先手
     isGameOver = false;
     update();
-    emit(TurnToNextPlayer(nextPlayer));
+    if(!isHumFir && aiModel){
+        isFir = true;
+        emit setpiece();
+    }else if(isHumFir && aiModel){
+        emit(TurnToNextPlayer(nextPlayer));
+    }
+
 }
 
 // 开始新游戏
@@ -388,9 +394,13 @@ void Chessboard::mouseReleaseEvent(QMouseEvent *event) // 鼠标点击事件
         if(!isGameOver && !aiModel && board[pieceX][pieceY] == NO_PIECE){
             SetPiece(pieceX,pieceY);  // 防止结束后还能下棋
         }
-        if(aiModel && nextPlayer == BLACK_PLAYER && !isGameOver && board[pieceX][pieceY] == NO_PIECE){  // 只有当黑棋(玩家)回合时才允许落子
+        if(isHumFir && aiModel && nextPlayer == BLACK_PLAYER && !isGameOver && board[pieceX][pieceY] == NO_PIECE){  // 只有当黑棋(玩家)回合时才允许落子
             SetPiece(pieceX,pieceY);
-            emit setpiece();  // 发出落子信号，向Ai更新棋盘信息
+            if(!isGameOver) emit setpiece();  // 发出落子信号，向Ai更新棋盘信息
+        }
+        if(!isHumFir && aiModel && nextPlayer == WHITE_PLAYER && !isGameOver && board[pieceX][pieceY] == NO_PIECE){  // 只有当黑棋(玩家)回合时才允许落子
+            SetPiece(pieceX,pieceY);
+            if(!isGameOver) emit setpiece();  // 发出落子信号，向Ai更新棋盘信息
         }
     }
 }
@@ -535,6 +545,8 @@ void Chessboard::ShowChoice(){
             dialog.close();
         }else if(secondPlayerRadioButton->isChecked()){
             isHumFir = false;
+            isFir = true;
+            emit setpiece();
             dialog.close();
         }
     });
@@ -545,7 +557,6 @@ void Chessboard::ShowChoice(){
                          "QRadioButton::indicator:checked { background-color: #8B4513; }"
                          "QPushButton { background-color: #8B4513; color: #fff; border: none; padding: 8px 16px; font-size: 16px; font-family: SimSun; font-weight: bold;border-radius: 20px; }"
                          "QPushButton:hover { background-color: #A0522D; }");
-
 
     // 显示对话框
     dialog.setLayout(&layout);

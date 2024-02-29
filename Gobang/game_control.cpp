@@ -88,14 +88,27 @@ void Game_control::GameIsOver(int winner){
 
 void Game_control::GameReStart(){
     chessboard.ReStartNewGame();
-
 }
 
 void Game_control::UpdateInfo(){
-    int score = gameai.MaxMinSearch(chessboard.board, DEPTH, INT_MIN, INT_MAX);
-    int x = gameai.bestPos.x;
-    int y = gameai.bestPos.y;
-    chessboard.SetPiece(x, y);
+    if(chessboard.isHumFir){
+        int score = gameai.MaxMinSearch(chessboard.board, DEPTH, INT_MIN, INT_MAX);
+        int x = gameai.bestPos.x;
+        int y = gameai.bestPos.y;
+        chessboard.SetPiece(x, y);
+    }else if(!chessboard.isHumFir){
+        if(chessboard.isFir) {
+            chessboard.SetPiece(9,9);
+            chessboard.isFir = false;
+        }else{
+            int rboard[BOARD_ROW][BOARD_COL] = {{0}};
+            gameai.reverseBoard(chessboard.board,rboard);
+            int score = gameai.MaxMinSearch(rboard, DEPTH, INT_MIN, INT_MAX);
+            int x = gameai.bestPos.x;
+            int y = gameai.bestPos.y;
+            chessboard.SetPiece(x, y);
+        }
+    }
 }
 
 Game_control::~Game_control()
