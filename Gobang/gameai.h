@@ -10,6 +10,7 @@ struct Pos {
     int x;
     int y;
 };
+
 struct Points {
     Pos pos[AN];
     int score[AN];
@@ -38,6 +39,7 @@ public:
     int chessStatus[4][4][4][4][4][4] = {{{{{{0}}}}}};
     Pos bestPos;
     zobrist zobb=zobrist((unsigned long long)100000);
+
 };
 
 #endif // GAMEAI_H

@@ -73,26 +73,12 @@ Points GameAi::localSearch(int board[BOARD_ROW][BOARD_COL]) {
 }
 
 int GameAi::MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int depth, int alpha, int beta){  // 极大极小值搜索
-
-    unsigned long long hashkey;
-    // EVALUATION EVAL = evaluate(board);
-
-    //如果有精确结果就返回精确结果
-    // int score = EVAL.score;
-    // hashkey=zobb.calculateHash(board);
-    // if(zobb.probe(hashkey, depth, score)){
-    //     return score;
-    // }else{
-    //     zobb.store(hashkey, depth, score);
-    // }
-    // 迭代深度为0，直接返回分析结果
     if (depth == 0) {
         Points p;
         p = this->localSearch(board);
         return p.score[0];
     }else if (depth % 2 == 0) { //max层
         int sameBoard[BOARD_ROW][BOARD_COL] = {{0}};
-        // 将board复制给sameboard
         copyBoard(board, sameBoard);
         Points p = this->localSearch(board);
         for (int i = 0; i < AN; i ++) {
@@ -101,21 +87,9 @@ int GameAi::MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int depth, int alpha, 
             sameBoard[p.pos[i].x][p.pos[i].y] = 0;
             if (a > alpha) {
                 alpha = a;
-                /*
-                 * 下面的if忘了打大括号，导致本来只能在depth == DEPTH的条件下修改bestPos.x = p.pos[i].x，而y是任意修改的
-                 * 所以下面一开始加了for循环，抵消掉if，使得x和y同时变，没问题
-                 * 后面把for注释掉，又加了，qDebug，也抵消掉if，没问题
-                 * 所以不是玄学
-                 */
                 if (depth == DEPTH) { // 顶层情况，  一旦找到最大的alpha，做出决策
-                    // for (int j = 0; j < BOARD_ROW; j++) {
-                    //     qDebug()<<board[j][0]<<" "<<board[j][1]<<" "<<board[j][2]<<" "<<board[j][3]<<" "<<board[j][4]<<" "<<board[j][5]<<" "<<board[j][6]<<" "<<board[j][7]<<" "<<board[j][8]<<" "<<board[j][9]<<" "<<board[j][10]<<" "<<board[j][11]<<" "<<board[j][12]<<" "<<board[j][13]<<" "<<board[j][14]<<" "<<board[j][15]<<" "<<board[j][16]<<" "<<board[j][17]<<" "<<board[j][18];
-                    // }
-                    qDebug()<<"i"<<i;
                     bestPos.x = p.pos[i].x;
                     bestPos.y = p.pos[i].y;
-                    qDebug()<<"x0"<<bestPos.x<<"y0"<<bestPos.y;
-                    //this->decision.score = p.score[i];
                 }
             }
             if (beta <= alpha) break; //剪枝
@@ -123,14 +97,10 @@ int GameAi::MaxMinSearch(int board[BOARD_ROW][BOARD_COL], int depth, int alpha, 
         return alpha;
     }
     else if (depth % 2 == 1) { //min层
-
         int rboard[BOARD_ROW][BOARD_COL] = {{0}};
-        //  反转棋盘
         reverseBoard(board, rboard);
         int sameBoard[BOARD_ROW][BOARD_COL] = {{0}};
-        // 将board复制给sameboard
         copyBoard(board, sameBoard);
-
         Points p = this->localSearch(rboard); //寻找对于敌方的最佳落子点
         for (int i = 0; i < AN; i ++) {
             sameBoard[p.pos[i].x][p.pos[i].y] = BLACK_PIECE;

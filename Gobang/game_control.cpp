@@ -107,6 +107,7 @@ void Game_control::UpdateInfo(){
             int x = gameai.bestPos.x;
             int y = gameai.bestPos.y;
             chessboard.SetPiece(x, y);
+
         }
     }
 }

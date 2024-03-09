@@ -16,7 +16,7 @@
 #define AI_MODE 2            // 悔棋步数：AI 2 步
 
 // 评估函数
-// 大写代表黑子（人类）小写代表白子（AI）
+// 大写代表黑子、小写代表白子
 #define OTHER 0//0
 #define WIN 1//1000000
 #define LOSE 2//-10000000

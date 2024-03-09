@@ -40,15 +40,16 @@ public:
     static const QSize BOARD_SIZE;              // 棋盘大小
     static const QSize PIECE_SIZE;              // 棋子大小
     QPoint mousePos;                            // 保存鼠标当前位置
-    bool isGameOver;                            // 游戏的结束标志
-    int nextPlayer;                             // 标志下一位棋手
+
     QVector<QPoint> winPiecePos;                // 保存获胜方五个棋子的位置
     QSet<int> boardReceivePlayer;               // 保存棋盘可接受的下棋方
     QStack<QPoint> dropedPieces;                // 保存落子的顺序信息
     int black_score;                            // 黑棋得分
     int white_score;                            // 白棋得分
+    bool isGameOver;                            // 游戏的结束标志
     bool aiModel;                               // ai模式标志
     bool isHumFir;                              // ai模式下，人是否先手标志
+    int nextPlayer;                             // 标志下一位棋手
     bool isFir;                                 // ai模式下，是否是ai的第一个棋子标记
     Ui::Chessboard *ui;
     //Ui::Chessboard *ui;                         // game_control通过ui获取按钮等(该方案有问题，也可以将按下按钮绑定一个发射信号，就像widget中的按钮一样，而把ui放入private

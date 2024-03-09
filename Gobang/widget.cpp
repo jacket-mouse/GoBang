@@ -27,6 +27,7 @@ void Widget::hideMenu(){
     update();
     this->hide();
     gamecontrol.chessboard.show();
+
 }
 void Widget::hideMenuAi(){
     gamecontrol.chessboard.aiModel = true;
